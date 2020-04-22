@@ -51,3 +51,11 @@ According to the proposed flow, the order entity should be saved multiple times.
 Magento provides a layer to communicate between Sales and Payment components it's `\Magento\Sales\Model\Order\Payment` but `\Magento\Payment\Model\MethodInterface` should be refactored to provide a possibility to return a result.
 
 The payment transaction processing should be moved to background asynchronous flow. Asynchronous operations should be used to execute payment transactions. Also, a lot of payment gateways support batch operations, so some transactions can be combined to bulks and executed in the one scope. The [Message Queue](https://devdocs.magento.com/guides/v2.3/extension-dev-guide/message-queues/message-queues.html) framework can be used to perform payment operations. The asynchronous flow should be configurable and by default should be disabled to preserve a backward compatibility for possible customizations.
+
+![Async authorize payment action](img/async_auth_payment.png)
+
+### Requirements
+
+ - A message queue should process payments authorization transactions with minimal delay as some payment nonce expire within an hour.
+ - For backward compatibility, the asynchronous payment processing should be available as alternative option for standard processing.
+ - Order history should contain full details about failed and successful operations.
