@@ -22,7 +22,7 @@ Despite on explicit timeouts the current architecture has own benefits. A custom
 
 Another problem that Sales Order Payment [designed](https://github.com/magento/magento2/blob/2.3-develop/app/code/Magento/Sales/Model/Order/Payment.php#L341-L393) to modify an order entity directly but not to get back payment details, so, each payment integration updates order entity data and Sales Order Payment calls methods to persist it.
 
-Let's more closer how the authorize payment action looks:
+Let's look more closer how the authorize payment action looks:
 
 ![Authorize payment action](img/authorize_payment_action.png)
 
@@ -40,9 +40,9 @@ Also, the current architecture contains a lot of abstractions which just proxy c
 
 ## The solution
 
-Magento payment infrastructure should be separated from Order Management as payment integrations should not worry about order entities. In general, payment integrations should get input details like customer data, amount, items and just execute a payment operation and should not contain any knowledge about order and how to update it. To achieve this state we can apply CQRS principles. Sales Order Management will dispatch events and Payment Infrastructure execute appropriate commands and dispatch other events, Order Management will listen to payment events and update order entities and other related data.
+The Magento payment infrastructure should be separated from Order Management as payment integrations should not worry about order entities. In general, payment integrations should get input details like customer data, amount, items and just execute a payment operation and should not contain any knowledge about order and how to update it. To achieve this state we can apply CQRS principles. Sales Order Management will dispatch events and Payment Infrastructure execute appropriate commands and dispatch other events, Order Management will listen to payment events and update order entities and other related data.
 
-Splitting payment's infrastructure from Sales is aligned to Service Isolation project. These improvements resolve circular dependencies between payments and sales and allow scale and replace Sales Order Management and payment integrations.
+Splitting payment's infrastructure from Sales aligned to Service Isolation project. These improvements resolve circular dependencies between payments and sales and allow scale and replace Sales Order Management and payment integrations.
 
 The current Sales Order Management does not provide a mechanism to void/refund a payment transaction if the order's saving operation fails but splitting up payments and sales infrastructure will allow executing independent operations for any action or event.
 
@@ -59,3 +59,4 @@ The payment transaction processing should be moved to background asynchronous fl
  - A message queue should process payments authorization transactions with minimal delay as some payment nonce expire within an hour.
  - For backward compatibility, the asynchronous payment processing should be available as alternative option for standard processing.
  - Order history should contain full details about failed and successful operations.
+ - Implement a mechanism to retry failed payment transactions for cases when it possible.
